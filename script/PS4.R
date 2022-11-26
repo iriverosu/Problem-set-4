@@ -14,27 +14,31 @@ tt <- read.csv("data/tweets.csv")
 head(tt)
 
 # Estudiamos la estructura de la data
-glimpse(tt)
-table(tt$name)
+glimpse(train)
+table(train$name)
 
 # Creamos una lista con todos los stopwords en español
 stopwords_español <- stopwords::stopwords("es", source = "snowball")
+train[1,3]
 # Eliminamos los acentos de los stopwords
 stopwords_español <- stri_trans_general(str = stopwords_español, id = "Latin-ASCII")
+train[9,3]
 
 # Normalizamos nuestros textos
 # Eliminamos los acentos
-tt$text <- stri_trans_general(str = tt$text, id = "Latin-ASCII")
+train$text <- stri_trans_general(str = train$text, id = "Latin-ASCII")
 # Ponemos el texto en minúscula
-tt$text <- tolower(tt$text)
+train$text <- tolower(train$text)
 # Reemplazamos todos los caracteres no alfanumericos con un espacio
-tt$text <- str_replace_all(tt$text, "[^[:alnum:]]", " ")
+train$text <- str_replace_all(train$text, "[^[:alnum:]]", " ")
 # Eliminamos los números
-tt$text <- gsub('[[:digit:]]+', '', tt$text)
+train$text <- gsub('[[:digit:]]+', '', train$text)
 # Quitamos stopwords
-tt$text <- removeWords(tt$text, stopwords_español)
+install.packages("tm")
+library(tm)
+train$text <- removeWords(train$text, stopwords_español)
 # Eliminamos todos los espacios extras
-tt$text <- gsub("\\s+", " ", str_trim(tt$text))
+train$text <- gsub("\\s+", " ", str_trim(train$text))
 
 
 
