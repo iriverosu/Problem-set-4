@@ -11,8 +11,7 @@ p_load("stopwords", "stringi", "tm", "rvest")
 # Definimos el directorio
 setwd(dirname(getActiveDocumentContext()$path))
 
-# Cargamos los datos
-train <- read.csv("data/tweets.csv")
+
 
 # Visualizamos las primeras filas
 head(train)
@@ -118,7 +117,7 @@ word_count <- tidy_train %>%
   group_by(doc_id) %>%
   count(lemma) %>%
   ungroup()
-table(word_count2$n)
+table(word_count$n)
 
 # Ahora vamos a eliminar las palabras extrañas (aquellas que aparezcan menos de 20 veces en los documentos) o demasiado comunes (que aparezcan en más del 50% de los documentos)
 word_count2 <- word_count %>%
