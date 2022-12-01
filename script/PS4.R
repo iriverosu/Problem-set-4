@@ -12,7 +12,6 @@ p_load("stopwords", "stringi", "tm", "rvest")
 setwd(dirname(getActiveDocumentContext()$path))
 
 
-
 # Visualizamos las primeras filas
 head(train)
 
@@ -118,23 +117,28 @@ word_count <- tidy_train %>%
   count(lemma) %>%
   ungroup()
 table(word_count$n)
+word_count$lemma<- ifelse(word_count$lemma == "t", NA, word_count$lemma)
+word_count$lemma<- ifelse(word_count$lemma == "co", NA, word_count$lemma)
+word_count$lemma<- ifelse(word_count$lemma == "https", NA, word_count$lemma)
+word_count = subset(x = word_count, subset = is.na(lemma)==FALSE)
 
 # Ahora vamos a eliminar las palabras extrañas (aquellas que aparezcan menos de 20 veces en los documentos) o demasiado comunes (que aparezcan en más del 50% de los documentos)
 word_count2 <- word_count %>%
   left_join(
      word_count %>%
       count(lemma) %>%
-      mutate(filtro = !((n >= 6))) %>%
+      mutate(filtro = !((n < 2))) %>%
       select(-n)
   ) %>%
   filter(filtro) %>%
   select(-filtro)
 
+word_count2$lemma<- ifelse(word_count2$lemma == "t", NA, word_count2$lemma)
+word_count2$lemma<- ifelse(word_count2$lemma == "co", NA, word_count2$lemma)
+word_count2$lemma<- ifelse(word_count2$lemma == "https", NA, word_count2$lemma)
+word_count2 = subset(x = word_count2, subset = is.na(lemma)==FALSE)
 
-word_count$lemma<- ifelse(word_count$lemma == "t", NA, word_count$lemma)
-word_count$lemma<- ifelse(word_count$lemma == "co", NA, word_count$lemma)
-word_count$lemma<- ifelse(word_count$lemma == "https", NA, word_count$lemma)
-word_count = subset(x = word_count, subset = is.na(lemma)==FALSE)
+table(word_count2$n)
 
 # Se nos colaron stopwords entonces otra vez chao
 # Normalizamos nuestros textos
@@ -150,7 +154,6 @@ train_dtm <- cast_dtm(data = word_count,
                         term = lemma, 
                         value = n)
 inspect(train_dtm)
-
 
 # Visualicemos las palabras más relevantes
 p_load(wordcloud)
@@ -188,6 +191,15 @@ X_std <- (X - min(X)) / (max(X) - min(X))
 X_scaled <- X_std * (1000 - 0) + 0
 X_scaled <- round(X_scaled, 0)
 
+colnames(X_scaled)
+removeWords(word_count$lemma,"bihepbwjx")
+removeWords(word_count$lemma,"fgbynkfep")
+removeWords(word_count$lemma,"ufyjpwb")
+removeWords(word_count$lemma,"kfsysiebtp")
+removeWords(word_count$lemma,"dihneenhu")
+removeWords(word_count$lemma,pattern= "^[^aáeéiíoóuúü]{3}+")
+word_count<-stringr::str_remove_all(word_count$lemma, pattern= "^[^aáeéiíoóuúü]{3}+")
+word_count <- as.data.frame(word_count)
 
 
 # Por toda esta gestión toca volver a hacer el proceso desde cero
