@@ -15,6 +15,7 @@ setwd(dirname(getActiveDocumentContext()$path))
 # Visualizamos las primeras filas
 head(train)
 
+
 # Estudiamos la estructura de la data
 glimpse(train)
 table(train$name)
@@ -41,8 +42,18 @@ library(tm)
 train$text <- removeWords(train$text, stopwords_español)
 # Eliminamos todos los espacios extras
 train$text <- gsub("\\s+", " ", str_trim(train$text))
+ train2<- train
+
+train2$text<- stringr::str_remove_all(train2$text, pattern= "^[^aáeéiíoóuúü]{3}+")
+train2$text<- stringr::str_remove_all(train2$text, pattern= "[^aáeéiíoóuúü]{3}+")
+train2$text<- stringr::str_remove_all(train2$text, pattern= "[aáeéiíoóuúü]{3}+")
+#train2$text<- stringr::str_remove_all(train2$text, pattern= "^.$")
+train2$text<- stringr::str_remove_all(train2$text, pattern= "^....$")
 
 
+train<-train2
+
+#train <- as.data.frame(train$text)
 
 
 # Vamos a crear una función para lematizar (que es lenta como un hpta)
@@ -82,8 +93,7 @@ lematiza("Bad Bunny")
 # Tokenizaremos nuestros textos
 p_load(tidytext)
 train$id <- 1:nrow(train)
-tidy_ensayos <- train %>%
-  unnest_tokens(output = token, input = text)
+tidy_ensayos <- train %>% unnest_tokens(output = token, input = text)
 
 # Tenemos 13 mil palabras únicas. 
 # Esto no lo vamos a correr en la complementaria porque se demora mucho. Vamos a importar el diccionario ya melo
@@ -92,7 +102,7 @@ diccionario_lemmatizador <- data.frame(corpus = unique(tidy_ensayos$token))
 diccionario_lemmatizador <- diccionario_lemmatizador %>% 
   # Si se hacen demasiadas querys nos van a bloquear entonces toca
   # darle con calma
-  mutate(lemma = sapply(corpus, lematiza))
+  #mutate(lemma = sapply(corpus, lematiza))
 
 
 
@@ -133,12 +143,10 @@ word_count2 <- word_count %>%
   filter(filtro) %>%
   select(-filtro)
 
-word_count2$lemma<- ifelse(word_count2$lemma == "t", NA, word_count2$lemma)
-word_count2$lemma<- ifelse(word_count2$lemma == "co", NA, word_count2$lemma)
-word_count2$lemma<- ifelse(word_count2$lemma == "https", NA, word_count2$lemma)
-word_count2 = subset(x = word_count2, subset = is.na(lemma)==FALSE)
 
 table(word_count2$n)
+
+
 
 # Se nos colaron stopwords entonces otra vez chao
 # Normalizamos nuestros textos
@@ -165,6 +173,29 @@ wordcloud(names(freq), freq, max.words = 50,
           colors = brewer.pal(8, "Accent"),
           scale = c(4, 0.5), rot.per = 0)
 
+word_count2<-word_count
+
+word_count2$lemma<- stringr::str_remove_all(word_count2$lemma, pattern= "^z")
+word_count2$lemma<- stringr::str_remove_all(word_count2$lemma, pattern= "^y")
+word_count2$lemma<- stringr::str_remove_all(word_count2$lemma, pattern= "^x")
+word_count2$lemma<- stringr::str_remove_all(word_count2$lemma, pattern= "^w")
+word_count2$lemma<- stringr::str_remove_all(word_count2$lemma, pattern= "^.$")
+word_count2$lemma<- stringr::str_remove_all(word_count2$lemma, pattern= "^..$")
+word_count2$lemma<- stringr::str_remove_all(word_count2$lemma, pattern= "^...$")
+word_count2$lemma<- stringr::str_remove_all(word_count2$lemma, pattern= ".............")
+word_count2$lemma<- stringr::str_remove_all(word_count2$lemma, pattern= "aa")
+word_count2$lemma<- stringr::str_remove_all(word_count2$lemma, pattern= "ee")
+word_count2$lemma<- stringr::str_remove_all(word_count2$lemma, pattern= "ii")
+word_count2$lemma<- stringr::str_remove_all(word_count2$lemma, pattern= "oo")
+word_count2$lemma<- stringr::str_remove_all(word_count2$lemma, pattern= "uu")
+
+
+
+
+word_count2$lemma<- ifelse(word_count2$lemma == "", NA, word_count2$lemma)
+word_count2 = subset(x = word_count2, subset = is.na(lemma)==FALSE)
+
+word_count<-word_count2
 
 
 train_dtm2 <- cast_dtm(data = word_count, 
@@ -186,20 +217,14 @@ wordcloud(names(freq2), freq2, max.words = 50,
           scale = c(4, 0.5), rot.per = 0)
 
 
+
 X <- as.matrix(train_dtm2)
 X_std <- (X - min(X)) / (max(X) - min(X))
 X_scaled <- X_std * (1000 - 0) + 0
 X_scaled <- round(X_scaled, 0)
 
 colnames(X_scaled)
-removeWords(word_count$lemma,"bihepbwjx")
-removeWords(word_count$lemma,"fgbynkfep")
-removeWords(word_count$lemma,"ufyjpwb")
-removeWords(word_count$lemma,"kfsysiebtp")
-removeWords(word_count$lemma,"dihneenhu")
-removeWords(word_count$lemma,pattern= "^[^aáeéiíoóuúü]{3}+")
-word_count<-stringr::str_remove_all(word_count$lemma, pattern= "^[^aáeéiíoóuúü]{3}+")
-word_count <- as.data.frame(word_count)
+
 
 
 # Por toda esta gestión toca volver a hacer el proceso desde cero
